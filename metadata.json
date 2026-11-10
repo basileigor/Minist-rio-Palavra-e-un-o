@@ -1,0 +1,6 @@
+{
+  "name": "Eclésia — Gestão Integral de Membros",
+  "description": "Sistema completo de gestão de membros e prontuário eclesiástico digital para administração da história pessoal, familiar, espiritual e ministerial dos membros.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
