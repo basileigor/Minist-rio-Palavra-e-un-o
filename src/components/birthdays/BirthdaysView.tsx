@@ -25,6 +25,7 @@ import {
   Check,
   Smartphone,
   ExternalLink,
+  Copy,
 } from 'lucide-react';
 import { useChurch } from '../../context/ChurchContext.tsx';
 import { calculateAge, formatDateBR, formatPhone } from '../../utils/formatters.ts';
@@ -81,6 +82,7 @@ export const BirthdaysView: React.FC = () => {
     isRunning: false,
     completed: false,
   });
+  const [copiedMemberId, setCopiedMemberId] = useState<string | null>(null);
 
   const months = [
     { num: 1, name: 'Janeiro' },
@@ -192,6 +194,13 @@ export const BirthdaysView: React.FC = () => {
     // Open WhatsApp Web/App
     const url = `https://wa.me/55${phone}?text=${encodeURIComponent(message)}`;
     window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
+  const handleCopyMessage = (member: typeof members[0]) => {
+    const message = formatBirthdayMessage(member);
+    navigator.clipboard.writeText(message);
+    setCopiedMemberId(member.id);
+    setTimeout(() => setCopiedMemberId(null), 2500);
   };
 
   // Batch automated dispatch simulation
@@ -504,18 +513,32 @@ export const BirthdaysView: React.FC = () => {
                     </div>
 
                     {phone ? (
-                      <button
-                        onClick={() => handleSendSingle(m)}
-                        className={`px-2.5 py-1 text-xs font-semibold rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer ${
-                          sent
-                            ? 'bg-slate-100 hover:bg-slate-200 text-slate-700'
-                            : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-2xs'
-                        }`}
-                        title="Disparar mensagem personalizada via WhatsApp"
-                      >
-                        <MessageCircle className="w-3.5 h-3.5" />
-                        <span>{sent ? 'Reenviar' : 'Enviar Mensagem'}</span>
-                      </button>
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => handleCopyMessage(m)}
+                          className="p-1.5 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer border border-slate-200"
+                          title="Copiar texto da mensagem de aniversário"
+                        >
+                          {copiedMemberId === m.id ? (
+                            <Check className="w-3.5 h-3.5 text-emerald-600" />
+                          ) : (
+                            <Copy className="w-3.5 h-3.5" />
+                          )}
+                        </button>
+                        <button
+                          onClick={() => handleSendSingle(m)}
+                          className={`px-2.5 py-1 text-xs font-semibold rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer ${
+                            sent
+                              ? 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                              : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-2xs'
+                          }`}
+                          title="Disparar mensagem personalizada via WhatsApp"
+                        >
+                          <MessageCircle className="w-3.5 h-3.5" />
+                          <span>{sent ? 'Reenviar' : 'Enviar Mensagem'}</span>
+                        </button>
+                      </div>
                     ) : null}
                   </div>
                 </div>
@@ -736,7 +759,7 @@ export const BirthdaysView: React.FC = () => {
                               <div className="text-[10px] text-slate-500 font-mono">{formatPhone(phone)}</div>
                             </div>
                           </div>
-                          <div>
+                          <div className="flex items-center gap-2">
                             {sent ? (
                               <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full">
                                 <CheckCircle2 className="w-3 h-3 text-emerald-600" />
@@ -747,6 +770,14 @@ export const BirthdaysView: React.FC = () => {
                                 Pronto para disparo
                               </span>
                             )}
+                            <button
+                              type="button"
+                              onClick={() => handleSendSingle(m)}
+                              className="p-1 text-emerald-700 hover:bg-emerald-100 rounded-md transition-colors"
+                              title="Abrir no WhatsApp"
+                            >
+                              <MessageCircle className="w-3.5 h-3.5" />
+                            </button>
                           </div>
                         </div>
                       );
