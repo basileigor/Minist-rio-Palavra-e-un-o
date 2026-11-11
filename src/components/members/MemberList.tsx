@@ -22,6 +22,8 @@ import {
   CheckCircle2,
   X,
   Award,
+  Trash2,
+  AlertTriangle,
 } from 'lucide-react';
 import { useChurch } from '../../context/ChurchContext.tsx';
 import { Member, MemberStatus, MinisterialRole } from '../../types/church.ts';
@@ -45,6 +47,7 @@ export const MemberList: React.FC = () => {
     currentUserRole,
     transferMember,
     changeMemberStatus,
+    deleteMember,
   } = useChurch();
 
   // Filters state
@@ -62,6 +65,10 @@ export const MemberList: React.FC = () => {
   const [statusModalMember, setStatusModalMember] = useState<Member | null>(null);
   const [newStatusSelection, setNewStatusSelection] = useState<MemberStatus>('Membro Ativo');
   const [statusChangeReason, setStatusChangeReason] = useState('');
+
+  const [deleteModalMember, setDeleteModalMember] = useState<Member | null>(null);
+  const [deleteMode, setDeleteMode] = useState<'permanent' | 'soft'>('permanent');
+  const [deleteReason, setDeleteReason] = useState('');
 
   // Combined filtering logic
   const filteredMembers = useMemo(() => {
@@ -158,6 +165,17 @@ export const MemberList: React.FC = () => {
     changeMemberStatus(statusModalMember.id, newStatusSelection, statusChangeReason);
     setStatusModalMember(null);
     setStatusChangeReason('');
+  };
+
+  const handleExecuteDelete = () => {
+    if (!deleteModalMember) return;
+    if (deleteMode === 'permanent') {
+      deleteMember(deleteModalMember.id, deleteReason || 'Exclusão de cadastro realizada pelo Administrador');
+    } else {
+      changeMemberStatus(deleteModalMember.id, 'Membro Desligado', deleteReason || 'Desligado do rol eclesiástico');
+    }
+    setDeleteModalMember(null);
+    setDeleteReason('');
   };
 
   return (
@@ -464,6 +482,18 @@ export const MemberList: React.FC = () => {
                             >
                               <Edit className="w-4 h-4" />
                             </button>
+
+                            <button
+                              onClick={() => {
+                                setDeleteModalMember(member);
+                                setDeleteMode('permanent');
+                                setDeleteReason('');
+                              }}
+                              className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-md transition-colors"
+                              title="Excluir cadastro do membro"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
                           </div>
                         </td>
                       </tr>
@@ -544,13 +574,26 @@ export const MemberList: React.FC = () => {
                   >
                     Ver Prontuário &rarr;
                   </button>
-                  <button
-                    onClick={() => handleOpenPrintable(member.id)}
-                    className="text-slate-400 hover:text-slate-600 p-1"
-                    title="Imprimir Ficha"
-                  >
-                    <Printer className="w-4 h-4" />
-                  </button>
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => handleOpenPrintable(member.id)}
+                      className="p-1 text-slate-400 hover:text-slate-600 rounded-md hover:bg-slate-100 transition-colors"
+                      title="Imprimir Ficha"
+                    >
+                      <Printer className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => {
+                        setDeleteModalMember(member);
+                        setDeleteMode('permanent');
+                        setDeleteReason('');
+                      }}
+                      className="p-1 text-slate-400 hover:text-rose-600 rounded-md hover:bg-rose-50 transition-colors"
+                      title="Excluir cadastro do membro"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
               </div>
             );
@@ -713,6 +756,120 @@ export const MemberList: React.FC = () => {
                 className="px-4 py-1.5 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-xs"
               >
                 Gravar Alteração
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Member Modal */}
+      {deleteModalMember && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs animate-in fade-in duration-150">
+          <div className="bg-white rounded-xl shadow-2xl border border-rose-200 w-full max-w-md p-5 space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-rose-100">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-rose-100 text-rose-700 flex items-center justify-center">
+                  <Trash2 className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-sm text-slate-900">
+                    Excluir Cadastro de Membro
+                  </h3>
+                  <p className="text-[11px] text-slate-500">
+                    Ação administrativa de exclusão ou desligamento
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setDeleteModalMember(null)}
+                className="text-slate-400 hover:text-slate-600 p-1 rounded-md"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="p-3 bg-slate-50 rounded-lg border border-slate-200 text-xs space-y-1">
+              <div>
+                <span className="text-slate-500">Membro:</span>{' '}
+                <strong className="text-slate-900">{deleteModalMember.fullName}</strong>
+              </div>
+              <div className="flex gap-4 text-slate-600">
+                <span>Matrícula: <strong className="font-mono text-slate-800">{deleteModalMember.registrationNumber}</strong></span>
+                <span>Cargo: <strong>{deleteModalMember.currentMinisterialRole}</strong></span>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-2">
+                Tipo de Ação:
+              </label>
+              <div className="space-y-2">
+                <label className={`flex items-start gap-3 p-3 border rounded-lg cursor-pointer transition-colors ${deleteMode === 'permanent' ? 'border-rose-300 bg-rose-50/50' : 'border-slate-200 hover:bg-slate-50'}`}>
+                  <input
+                    type="radio"
+                    name="deleteMode"
+                    value="permanent"
+                    checked={deleteMode === 'permanent'}
+                    onChange={() => setDeleteMode('permanent')}
+                    className="mt-0.5 text-rose-600 focus:ring-rose-500"
+                  />
+                  <div>
+                    <div className="text-xs font-bold text-rose-900">
+                      Exclusão Definitiva do Sistema
+                    </div>
+                    <div className="text-[11px] text-rose-700/80">
+                      Remove completamente o registro do membro da base de dados e exclui alertas associados.
+                    </div>
+                  </div>
+                </label>
+
+                <label className={`flex items-start gap-3 p-3 border rounded-lg cursor-pointer transition-colors ${deleteMode === 'soft' ? 'border-amber-300 bg-amber-50/50' : 'border-slate-200 hover:bg-slate-50'}`}>
+                  <input
+                    type="radio"
+                    name="deleteMode"
+                    value="soft"
+                    checked={deleteMode === 'soft'}
+                    onChange={() => setDeleteMode('soft')}
+                    className="mt-0.5 text-amber-600 focus:ring-amber-500"
+                  />
+                  <div>
+                    <div className="text-xs font-bold text-amber-900">
+                      Desligar do Rol Eclesiástico (Recomendado)
+                    </div>
+                    <div className="text-[11px] text-amber-700/80">
+                      Mantém o prontuário arquivado com status "Membro Desligado" para auditoria, histórico e certidões passadas.
+                    </div>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">
+                Motivo / Justificativa da Exclusão:
+              </label>
+              <textarea
+                value={deleteReason}
+                onChange={(e) => setDeleteReason(e.target.value)}
+                rows={2}
+                placeholder="Ex: Cadastro duplicado, solicitação do membro, mudança definitiva..."
+                className="w-full p-2.5 text-xs border border-slate-200 rounded-lg text-slate-800 placeholder-slate-400 focus:outline-hidden focus:ring-2 focus:ring-rose-500"
+              />
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+              <button
+                onClick={() => setDeleteModalMember(null)}
+                className="px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleExecuteDelete}
+                className="flex items-center gap-1.5 px-4 py-1.5 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-lg shadow-xs transition-colors"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>{deleteMode === 'permanent' ? 'Excluir Definitivamente' : 'Desligar Membro'}</span>
               </button>
             </div>
           </div>

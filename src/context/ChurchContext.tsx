@@ -403,9 +403,12 @@ export const ChurchProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     );
   };
 
-  const deleteMember = (id: string, reason: string) => {
-    // LGPD Soft-delete or Mark as Desligado to preserve church history as required
-    changeMemberStatus(id, 'Membro Desligado', `Desligamento: ${reason}`);
+  const deleteMember = (id: string, reason: string = 'Exclusão de cadastro') => {
+    setMembers((prev) => prev.filter((m) => m.id !== id));
+    setAlerts((prev) => prev.filter((a) => a.memberId !== id));
+    if (selectedMemberId === id) {
+      setSelectedMemberId(null);
+    }
   };
 
   const transferMember = (memberId: string, toCongregationId: string, reason: string) => {
