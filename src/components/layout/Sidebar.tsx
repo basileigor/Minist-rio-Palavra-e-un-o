@@ -127,6 +127,10 @@ export const Sidebar: React.FC = () => {
           <div className="text-[10px] text-amber-200/70 truncate">
             Transformando Vidas
           </div>
+          <div className="mt-1 flex items-center gap-1.5 text-[10px] text-emerald-400 font-mono">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+            <span className="truncate font-semibold text-emerald-300">membrospalavraeuncao</span>
+          </div>
         </div>
       </div>
 

@@ -75,6 +75,13 @@ export const LoginView: React.FC = () => {
               <Lock className="w-3 h-3 text-amber-700" />
               <span>Acesso Restrito: Administrador Geral</span>
             </div>
+
+            <div className="mt-2.5 flex items-center justify-center gap-1.5 text-xs text-slate-600">
+              <span className="text-[11px] text-slate-400 font-medium">Link Oficial:</span>
+              <span className="font-mono font-bold text-emerald-900 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 text-[11px]">
+                membrospalavraeuncao
+              </span>
+            </div>
           </div>
 
           {/* Form */}
