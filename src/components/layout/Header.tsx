@@ -36,6 +36,7 @@ export const Header: React.FC = () => {
     setSelectedMemberId,
     members,
     adminUser,
+    currentUser,
     setShowAdminCredentialsModal,
     logout,
     officialPresentationUrl,
@@ -110,48 +111,52 @@ export const Header: React.FC = () => {
           </button>
         </div>
 
-        {/* Zone 2: Operador - Admin Geral com Menu de Credenciais */}
+        {/* Zone 2: Operador - Usuário Autenticado com Menu de Perfil */}
         <div className="relative flex items-center">
           <button
             onClick={() => setShowAdminMenu(!showAdminMenu)}
             className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold bg-amber-50 hover:bg-amber-100/80 border border-amber-200/90 rounded-lg text-amber-900 shadow-2xs transition-colors cursor-pointer group"
-            title="Clique para gerenciar login, senha ou sair"
+            title="Gerenciar conta, senha ou desconectar"
           >
             <Shield className="w-3.5 h-3.5 text-amber-600 shrink-0" />
-            <span>Admin Geral</span>
-            <span className="hidden md:inline-block text-[10px] font-normal text-amber-700/80 ml-0.5 pl-1.5 border-l border-amber-200">
-              {adminUser.username}
+            <span className="truncate max-w-[120px] sm:max-w-none">
+              {currentUser?.name || 'Admin Geral'}
+            </span>
+            <span className="hidden md:inline-block text-[10px] font-normal text-amber-700/80 ml-0.5 pl-1.5 border-l border-amber-200 font-mono">
+              @{currentUser?.username || adminUser.username}
             </span>
             <ChevronDown className="w-3 h-3 text-amber-600 group-hover:translate-y-0.5 transition-transform" />
           </button>
 
-          {/* Admin Popover Menu */}
+          {/* User Popover Menu */}
           {showAdminMenu && (
             <div className="absolute top-full left-0 mt-2 w-72 bg-white rounded-xl shadow-xl border border-slate-200 z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
               <div className="p-3 bg-gradient-to-r from-slate-900 to-amber-950 text-white">
                 <div className="text-[10px] font-mono text-amber-300 font-semibold uppercase tracking-wider">
-                  Perfil de Administrador Geral
+                  {currentUser?.role === 'ADMIN_GERAL' ? 'Administrador Geral' : 'Usuário Autenticado'}
                 </div>
-                <div className="text-sm font-bold mt-0.5 truncate">{adminUser.name}</div>
+                <div className="text-sm font-bold mt-0.5 truncate">{currentUser?.name || adminUser.name}</div>
                 <div className="text-xs text-slate-300 font-mono mt-0.5 truncate">
-                  login: <strong className="text-amber-200">{adminUser.username}</strong>
+                  login: <strong className="text-amber-200">@{currentUser?.username || adminUser.username}</strong>
                 </div>
               </div>
 
               <div className="p-2 space-y-1">
-                <button
-                  onClick={() => {
-                    setShowAdminMenu(false);
-                    setShowAdminCredentialsModal(true);
-                  }}
-                  className="w-full text-left px-3 py-2 text-xs font-medium text-slate-700 hover:text-amber-900 hover:bg-amber-50 rounded-lg flex items-center gap-2.5 transition-colors cursor-pointer"
-                >
-                  <KeyRound className="w-4 h-4 text-amber-600 shrink-0" />
-                  <div>
-                    <div className="font-semibold">Alterar Login & Senha</div>
-                    <div className="text-[10px] text-slate-500">Cadastre novo usuário e senha</div>
-                  </div>
-                </button>
+                {(!currentUser || currentUser.role === 'ADMIN_GERAL') && (
+                  <button
+                    onClick={() => {
+                      setShowAdminMenu(false);
+                      setShowAdminCredentialsModal(true);
+                    }}
+                    className="w-full text-left px-3 py-2 text-xs font-medium text-slate-700 hover:text-amber-900 hover:bg-amber-50 rounded-lg flex items-center gap-2.5 transition-colors cursor-pointer"
+                  >
+                    <KeyRound className="w-4 h-4 text-amber-600 shrink-0" />
+                    <div>
+                      <div className="font-semibold">Alterar Senha do Admin Geral</div>
+                      <div className="text-[10px] text-slate-500">Configuração mestre do sistema</div>
+                    </div>
+                  </button>
+                )}
 
                 <div className="border-t border-slate-100 my-1" />
 

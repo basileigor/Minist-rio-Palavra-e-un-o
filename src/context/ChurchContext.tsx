@@ -17,6 +17,7 @@ import {
   AuditLogEntry,
   MemberStatusHistory,
   AdminCredentials,
+  AppUser,
 } from '../types/church.ts';
 import {
   initialMembers,
@@ -32,6 +33,8 @@ const STORAGE_KEY_ALERTS = 'eclesia_church_alerts_v2';
 const STORAGE_KEY_ROLE = 'eclesia_church_role_v2';
 const STORAGE_KEY_ADMIN_CREDS = 'eclesia_admin_creds_v3';
 const STORAGE_KEY_AUTH = 'eclesia_admin_auth_v3';
+const STORAGE_KEY_USERS = 'eclesia_registered_users_v1';
+const STORAGE_KEY_CURRENT_USER = 'eclesia_current_user_v1';
 
 interface ChurchContextType {
   members: Member[];
@@ -49,11 +52,22 @@ interface ChurchContextType {
   activeView: string;
   setActiveView: (view: string) => void;
 
-  // Admin Authentication & Credentials
+  // Authentication & Users Management
   adminUser: AdminCredentials;
+  registeredUsers: AppUser[];
+  currentUser: AppUser | null;
   isAuthenticated: boolean;
   officialPresentationUrl: string;
   login: (usernameOrEmail: string, password: string) => { success: boolean; message?: string };
+  registerUser: (userData: {
+    name: string;
+    username: string;
+    email?: string;
+    phone?: string;
+    password: string;
+    role?: UserRole;
+  }) => { success: boolean; message: string; user?: AppUser };
+  deleteUser: (userId: string) => void;
   loginAsEndUser: () => void;
   logout: () => void;
   updateAdminCredentials: (data: {
@@ -164,30 +178,118 @@ export const ChurchProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
   });
 
+  const defaultMasterUser: AppUser = {
+    id: 'usr-admin-master',
+    name: 'Administrador Geral',
+    username: 'admin',
+    email: 'admin@palavraeuncao.com.br',
+    password: 'admin123',
+    role: 'ADMIN_GERAL',
+    createdAt: '2026-01-01T00:00:00.000Z',
+    active: true,
+  };
+
+  const [registeredUsers, setRegisteredUsers] = useState<AppUser[]>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY_USERS);
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return [defaultMasterUser];
+  });
+
+  const [currentUser, setCurrentUser] = useState<AppUser | null>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY_CURRENT_USER);
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return null;
+  });
+
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY_AUTH);
-      return saved !== null ? saved === 'true' : true;
+      return saved !== null ? saved === 'true' : false;
     } catch {
-      return true;
+      return false;
     }
   });
 
   const [showAdminCredentialsModal, setShowAdminCredentialsModal] = useState<boolean>(false);
 
+  const officialPresentationUrl = 'https://membrospalavraeuncao.vercel.app';
+
   const login = (usernameOrEmail: string, password: string) => {
     const input = usernameOrEmail.trim().toLowerCase();
-    const matchesUser =
+
+    // 1. Search in registered users list
+    const foundUser = registeredUsers.find(
+      (u) =>
+        u.username.toLowerCase() === input ||
+        (u.email && u.email.toLowerCase() === input)
+    );
+
+    if (foundUser) {
+      if (foundUser.password !== password) {
+        return {
+          success: false,
+          message: 'Senha incorreta. Por favor, verifique os dados digitados.',
+        };
+      }
+      if (!foundUser.active) {
+        return {
+          success: false,
+          message: 'Esta conta de usuário foi temporariamente suspensa pelo Administrador.',
+        };
+      }
+
+      const updatedUser: AppUser = {
+        ...foundUser,
+        lastLogin: new Date().toISOString(),
+      };
+
+      setCurrentUser(updatedUser);
+      setCurrentUserRole(foundUser.role || 'MEMBRO');
+      setIsAuthenticated(true);
+
+      try {
+        localStorage.setItem(STORAGE_KEY_AUTH, 'true');
+        localStorage.setItem(STORAGE_KEY_CURRENT_USER, JSON.stringify(updatedUser));
+        const updatedList = registeredUsers.map((u) =>
+          u.id === foundUser.id ? updatedUser : u
+        );
+        setRegisteredUsers(updatedList);
+        localStorage.setItem(STORAGE_KEY_USERS, JSON.stringify(updatedList));
+      } catch (e) {
+        console.warn('Storage error', e);
+      }
+      return { success: true };
+    }
+
+    // 2. Fallback check for Master Admin Credentials
+    const matchesAdmin =
       adminUser.username.toLowerCase() === input ||
       adminUser.email.toLowerCase() === input;
 
-    if (matchesUser && adminUser.password === password) {
+    if (matchesAdmin && adminUser.password === password) {
+      const adminAsUser: AppUser = {
+        id: 'usr-admin-master',
+        name: adminUser.name,
+        username: adminUser.username,
+        email: adminUser.email,
+        password: adminUser.password,
+        role: 'ADMIN_GERAL',
+        createdAt: adminUser.updatedAt || '2026-01-01T00:00:00.000Z',
+        lastLogin: new Date().toISOString(),
+        active: true,
+      };
+
+      setCurrentUser(adminAsUser);
+      setCurrentUserRole('ADMIN_GERAL');
       setIsAuthenticated(true);
+
       try {
         localStorage.setItem(STORAGE_KEY_AUTH, 'true');
-        const updated = { ...adminUser, lastLogin: new Date().toISOString() };
-        localStorage.setItem(STORAGE_KEY_ADMIN_CREDS, JSON.stringify(updated));
-        setAdminUser(updated);
+        localStorage.setItem(STORAGE_KEY_CURRENT_USER, JSON.stringify(adminAsUser));
       } catch (e) {
         console.warn('Storage error', e);
       }
@@ -196,17 +298,121 @@ export const ChurchProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
     return {
       success: false,
-      message: 'Usuário/E-mail ou senha incorretos. Verifique suas credenciais de Admin Geral.',
+      message: 'Usuário ou senha incorretos. Se ainda não possui acesso, clique na aba "Cadastrar Novo Usuário" ao lado.',
     };
   };
 
-  const officialPresentationUrl = 'https://membrospalavraeuncao.vercel.app';
+  const registerUser = (userData: {
+    name: string;
+    username: string;
+    email?: string;
+    phone?: string;
+    password: string;
+    role?: UserRole;
+  }) => {
+    const cleanName = userData.name.trim();
+    const cleanUser = userData.username.trim().toLowerCase();
+    const cleanPass = userData.password.trim();
+
+    if (!cleanName || !cleanUser || !cleanPass) {
+      return {
+        success: false,
+        message: 'Por favor, preencha o Nome Completo, Login e a Senha.',
+      };
+    }
+
+    if (cleanUser.length < 3) {
+      return {
+        success: false,
+        message: 'O nome de login deve possuir no mínimo 3 caracteres.',
+      };
+    }
+
+    if (cleanPass.length < 4) {
+      return {
+        success: false,
+        message: 'A senha cadastrada deve conter no mínimo 4 caracteres.',
+      };
+    }
+
+    // Check uniqueness
+    const usernameTaken =
+      registeredUsers.some((u) => u.username.toLowerCase() === cleanUser) ||
+      adminUser.username.toLowerCase() === cleanUser;
+
+    if (usernameTaken) {
+      return {
+        success: false,
+        message: `O login "${cleanUser}" já está cadastrado. Por favor, escolha outro nome de usuário.`,
+      };
+    }
+
+    if (userData.email && userData.email.trim()) {
+      const cleanEmail = userData.email.trim().toLowerCase();
+      const emailTaken = registeredUsers.some(
+        (u) => u.email && u.email.toLowerCase() === cleanEmail
+      );
+      if (emailTaken) {
+        return {
+          success: false,
+          message: `O e-mail "${cleanEmail}" já está associado a outra conta.`,
+        };
+      }
+    }
+
+    const newUser: AppUser = {
+      id: `usr-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+      name: cleanName,
+      username: cleanUser,
+      email: userData.email?.trim() || undefined,
+      phone: userData.phone?.trim() || undefined,
+      password: cleanPass,
+      role: userData.role || 'MEMBRO',
+      createdAt: new Date().toISOString(),
+      lastLogin: new Date().toISOString(),
+      active: true,
+    };
+
+    const updatedList = [...registeredUsers, newUser];
+    setRegisteredUsers(updatedList);
+    setCurrentUser(newUser);
+    setCurrentUserRole(newUser.role);
+    setIsAuthenticated(true);
+
+    try {
+      localStorage.setItem(STORAGE_KEY_USERS, JSON.stringify(updatedList));
+      localStorage.setItem(STORAGE_KEY_CURRENT_USER, JSON.stringify(newUser));
+      localStorage.setItem(STORAGE_KEY_AUTH, 'true');
+    } catch (e) {
+      console.warn('Storage error', e);
+    }
+
+    return {
+      success: true,
+      message: 'Cadastro realizado com sucesso! Seja bem-vindo ao Ministério Palavra e Unção.',
+      user: newUser,
+    };
+  };
+
+  const deleteUser = (userId: string) => {
+    if (userId === 'usr-admin-master') return; // Protect master admin
+    const updated = registeredUsers.filter((u) => u.id !== userId);
+    setRegisteredUsers(updated);
+    try {
+      localStorage.setItem(STORAGE_KEY_USERS, JSON.stringify(updated));
+    } catch (e) {
+      console.warn('Storage error', e);
+    }
+  };
 
   const loginAsEndUser = () => {
+    // If user clicks quick demo, sign in with default or master
     setIsAuthenticated(true);
+    setCurrentUser(defaultMasterUser);
     setCurrentUserRole('ADMIN_GERAL');
     try {
       localStorage.setItem(STORAGE_KEY_AUTH, 'true');
+      localStorage.setItem(STORAGE_KEY_CURRENT_USER, JSON.stringify(defaultMasterUser));
     } catch (e) {
       console.warn('Storage error', e);
     }
@@ -214,8 +420,10 @@ export const ChurchProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const logout = () => {
     setIsAuthenticated(false);
+    setCurrentUser(null);
     try {
       localStorage.setItem(STORAGE_KEY_AUTH, 'false');
+      localStorage.removeItem(STORAGE_KEY_CURRENT_USER);
     } catch (e) {
       console.warn('Storage error', e);
     }
@@ -681,11 +889,15 @@ export const ChurchProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         activeView,
         setActiveView,
         adminUser,
+        registeredUsers,
+        currentUser,
         isAuthenticated,
         officialPresentationUrl,
         showAdminCredentialsModal,
         setShowAdminCredentialsModal,
         login,
+        registerUser,
+        deleteUser,
         loginAsEndUser,
         logout,
         updateAdminCredentials,

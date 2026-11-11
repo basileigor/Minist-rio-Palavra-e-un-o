@@ -497,3 +497,16 @@ export interface AdminCredentials {
   updatedAt?: string;
 }
 
+export interface AppUser {
+  id: string;
+  name: string;
+  username: string;
+  email?: string;
+  phone?: string;
+  password: string;
+  role: UserRole;
+  createdAt: string;
+  lastLogin?: string;
+  active: boolean;
+}
+

@@ -23,6 +23,8 @@ import {
   Check,
   ExternalLink,
   Send,
+  Trash2,
+  Users,
 } from 'lucide-react';
 import { useChurch } from '../../context/ChurchContext.tsx';
 
@@ -39,6 +41,8 @@ export const SettingsBackupView: React.FC = () => {
     currentUserRole,
     setActiveView,
     adminUser,
+    registeredUsers,
+    deleteUser,
     setShowAdminCredentialsModal,
     officialPresentationUrl,
   } = useChurch();
@@ -288,6 +292,84 @@ export const SettingsBackupView: React.FC = () => {
               </button>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Registered Users Management Table */}
+      <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-xs space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+          <div>
+            <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+              <Users className="w-4 h-4 text-emerald-600" />
+              <span>Usuários com Acesso Cadastrado ({registeredUsers.length})</span>
+            </h2>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Lista de usuários finais e administradores que cadastraram login e senha para acessar o sistema.
+            </p>
+          </div>
+          <span className="text-[11px] font-mono bg-emerald-50 text-emerald-800 border border-emerald-200 px-2.5 py-1 rounded-md self-start sm:self-auto font-semibold">
+            Auto-cadastro de Usuário Final Ativo
+          </span>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs text-left">
+            <thead>
+              <tr className="border-b border-slate-200 text-slate-500 bg-slate-50 font-semibold">
+                <th className="py-2.5 px-3">Nome do Usuário</th>
+                <th className="py-2.5 px-3">Login (@usuário)</th>
+                <th className="py-2.5 px-3">Telefone / WhatsApp</th>
+                <th className="py-2.5 px-3">Perfil / Papel</th>
+                <th className="py-2.5 px-3">Status</th>
+                <th className="py-2.5 px-3 text-right">Ação</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {registeredUsers.map((u) => (
+                <tr key={u.id} className="hover:bg-slate-50/60">
+                  <td className="py-2.5 px-3 font-semibold text-slate-900">
+                    {u.name}
+                  </td>
+                  <td className="py-2.5 px-3 font-mono text-emerald-800 font-medium">
+                    @{u.username}
+                  </td>
+                  <td className="py-2.5 px-3 text-slate-600 font-mono">
+                    {u.phone || '—'}
+                  </td>
+                  <td className="py-2.5 px-3">
+                    <span className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
+                      u.role === 'ADMIN_GERAL' ? 'bg-amber-100 text-amber-900' : 'bg-slate-100 text-slate-700'
+                    }`}>
+                      {u.role === 'ADMIN_GERAL' ? 'Admin Geral' : 'Usuário / Membro'}
+                    </span>
+                  </td>
+                  <td className="py-2.5 px-3">
+                    <span className="inline-flex items-center gap-1 text-[11px] text-emerald-700 font-medium">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                      <span>Ativo</span>
+                    </span>
+                  </td>
+                  <td className="py-2.5 px-3 text-right">
+                    {u.id !== 'usr-admin-master' && u.username !== 'admin' ? (
+                      <button
+                        onClick={() => {
+                          if (confirm(`Deseja realmente remover o acesso do usuário @${u.username}?`)) {
+                            deleteUser(u.id);
+                          }
+                        }}
+                        className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                        title="Remover acesso deste usuário"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    ) : (
+                      <span className="text-[10px] text-slate-400 font-mono italic">Mestre</span>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
 
