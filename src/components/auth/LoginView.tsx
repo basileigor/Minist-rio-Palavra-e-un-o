@@ -13,21 +13,15 @@ import {
   KeyRound,
   AlertCircle,
   CheckCircle2,
-  Globe,
-  Copy,
-  Check,
-  Send,
   UserPlus,
   Phone,
   Mail,
-  Sparkles,
-  ArrowRight,
   LogIn,
 } from 'lucide-react';
 import { useChurch } from '../../context/ChurchContext.tsx';
 
 export const LoginView: React.FC = () => {
-  const { login, registerUser, adminUser, officialPresentationUrl } = useChurch();
+  const { login, registerUser, adminUser } = useChurch();
 
   const [mode, setMode] = useState<'login' | 'register'>('login');
 
@@ -49,13 +43,6 @@ export const LoginView: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [copied, setCopied] = useState(false);
-
-  const handleCopyLink = () => {
-    navigator.clipboard.writeText(officialPresentationUrl);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2200);
-  };
 
   const handleLoginSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -138,52 +125,6 @@ export const LoginView: React.FC = () => {
       </div>
 
       <div className="w-full max-w-lg relative z-10 animate-in fade-in zoom-in-95 duration-200">
-        {/* Banner do Link Oficial de Apresentação */}
-        <div className="mb-4 bg-emerald-950/85 backdrop-blur-md border border-emerald-400/40 rounded-2xl p-4 text-white shadow-xl animate-in fade-in slide-in-from-top-2 duration-200">
-          <div className="flex items-center justify-between gap-3 flex-wrap">
-            <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-300 flex items-center justify-center border border-emerald-400/30 shrink-0">
-                <Globe className="w-5 h-5" />
-              </div>
-              <div className="overflow-hidden">
-                <div className="text-xs font-bold text-emerald-200 flex items-center gap-1.5 flex-wrap">
-                  <span>Link Oficial para o Usuário Final</span>
-                  <span className="bg-emerald-500/30 text-emerald-200 text-[10px] px-2 py-0.5 rounded font-mono font-bold">
-                    membrospalavraeuncao
-                  </span>
-                </div>
-                <div className="text-[11px] text-slate-300 font-mono mt-0.5 truncate max-w-[260px] sm:max-w-xs">
-                  {officialPresentationUrl}
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2 w-full sm:w-auto justify-end pt-2 sm:pt-0 border-t sm:border-t-0 border-emerald-800/60">
-              <button
-                type="button"
-                onClick={handleCopyLink}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold shadow-xs transition-colors cursor-pointer"
-                title="Copiar link oficial"
-              >
-                {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                <span>{copied ? 'Copiado!' : 'Copiar Link'}</span>
-              </button>
-              <a
-                href={`https://wa.me/?text=${encodeURIComponent(
-                  'Acesse o Sistema de Gestão de Membros do Ministério Palavra e Unção através do link oficial: ' + officialPresentationUrl
-                )}`}
-                target="_blank"
-                rel="noreferrer"
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-200 border border-emerald-400/40 rounded-lg text-xs font-semibold transition-colors"
-                title="Compartilhar no WhatsApp"
-              >
-                <Send className="w-3.5 h-3.5" />
-                <span>WhatsApp</span>
-              </a>
-            </div>
-          </div>
-        </div>
-
         {/* Main Card */}
         <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-amber-200/40 overflow-hidden">
           {/* Header with Church Logo & Identity */}
@@ -205,12 +146,6 @@ export const LoginView: React.FC = () => {
             <p className="text-xs font-semibold text-amber-700 uppercase tracking-widest mt-0.5">
               Transformando Vidas
             </p>
-            <div className="mt-2 flex items-center justify-center gap-1.5 text-xs text-slate-600">
-              <span className="text-[11px] text-slate-400 font-medium">Link do Sistema:</span>
-              <span className="font-mono font-bold text-emerald-900 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 text-[11px]">
-                membrospalavraeuncao
-              </span>
-            </div>
           </div>
 
           {/* Dual Tabs: Entrar vs Cadastrar Acesso */}
@@ -529,14 +464,9 @@ export const LoginView: React.FC = () => {
         </div>
 
         {/* Security / Legal disclaimer */}
-        <div className="mt-4 text-center text-xs text-slate-400 flex flex-col items-center justify-center gap-1">
-          <div className="flex items-center gap-1.5">
-            <Shield className="w-3.5 h-3.5 text-amber-500" />
-            <span>Sistema Integral de Gestão de Membros · LGPD em conformidade</span>
-          </div>
-          <span className="text-[11px] text-slate-500 font-mono">
-            membrospalavraeuncao
-          </span>
+        <div className="mt-4 text-center text-xs text-slate-400 flex items-center justify-center gap-1.5">
+          <Shield className="w-3.5 h-3.5 text-amber-500" />
+          <span>Sistema Integral de Gestão de Membros · LGPD em conformidade</span>
         </div>
       </div>
     </div>
