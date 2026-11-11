@@ -38,6 +38,7 @@ export const Header: React.FC = () => {
     adminUser,
     setShowAdminCredentialsModal,
     logout,
+    officialPresentationUrl,
   } = useChurch();
 
   const [showAlertsPopover, setShowAlertsPopover] = useState(false);
@@ -47,7 +48,6 @@ export const Header: React.FC = () => {
   const [copied, setCopied] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
-  const officialPresentationUrl = 'https://membrospalavraeuncao.vercel.app';
   const currentAppUrl = typeof window !== 'undefined' ? window.location.origin : officialPresentationUrl;
 
   const handleCopyLink = (urlToCopy: string) => {

@@ -40,14 +40,13 @@ export const SettingsBackupView: React.FC = () => {
     setActiveView,
     adminUser,
     setShowAdminCredentialsModal,
+    officialPresentationUrl,
   } = useChurch();
 
   const [formData, setFormData] = useState({ ...settings });
   const [csvInput, setCsvInput] = useState('');
   const [importStatus, setImportStatus] = useState<string | null>(null);
   const [copiedLink, setCopiedLink] = useState(false);
-
-  const officialPresentationUrl = 'https://membrospalavraeuncao.vercel.app';
   const currentUrl = typeof window !== 'undefined' ? window.location.origin : officialPresentationUrl;
 
   const handleCopy = (url: string) => {

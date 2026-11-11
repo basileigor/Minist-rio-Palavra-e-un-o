@@ -52,7 +52,9 @@ interface ChurchContextType {
   // Admin Authentication & Credentials
   adminUser: AdminCredentials;
   isAuthenticated: boolean;
+  officialPresentationUrl: string;
   login: (usernameOrEmail: string, password: string) => { success: boolean; message?: string };
+  loginAsEndUser: () => void;
   logout: () => void;
   updateAdminCredentials: (data: {
     name?: string;
@@ -196,6 +198,18 @@ export const ChurchProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       success: false,
       message: 'Usuário/E-mail ou senha incorretos. Verifique suas credenciais de Admin Geral.',
     };
+  };
+
+  const officialPresentationUrl = 'https://membrospalavraeuncao.vercel.app';
+
+  const loginAsEndUser = () => {
+    setIsAuthenticated(true);
+    setCurrentUserRole('ADMIN_GERAL');
+    try {
+      localStorage.setItem(STORAGE_KEY_AUTH, 'true');
+    } catch (e) {
+      console.warn('Storage error', e);
+    }
   };
 
   const logout = () => {
@@ -668,9 +682,11 @@ export const ChurchProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         setActiveView,
         adminUser,
         isAuthenticated,
+        officialPresentationUrl,
         showAdminCredentialsModal,
         setShowAdminCredentialsModal,
         login,
+        loginAsEndUser,
         logout,
         updateAdminCredentials,
         addMember,
