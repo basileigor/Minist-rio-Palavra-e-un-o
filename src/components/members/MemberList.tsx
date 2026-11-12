@@ -55,7 +55,12 @@ export const MemberList: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [roleFilter, setRoleFilter] = useState<string>('all');
   const [baptismFilter, setBaptismFilter] = useState<string>('all'); // all, baptized, not_baptized
-  const [viewMode, setViewMode] = useState<'table' | 'cards'>('table');
+  const [viewMode, setViewMode] = useState<'table' | 'cards'>(() => {
+    if (typeof window !== 'undefined' && window.innerWidth < 768) {
+      return 'cards';
+    }
+    return 'table';
+  });
 
   // Quick Action Modal states
   const [transferModalMember, setTransferModalMember] = useState<Member | null>(null);
@@ -191,10 +196,10 @@ export const MemberList: React.FC = () => {
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <button
             onClick={handleExportCSV}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg transition-colors"
+            className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg transition-colors cursor-pointer"
             title="Exportar dados filtrados para Excel / CSV"
           >
             <Download className="w-3.5 h-3.5 text-slate-500" />
@@ -206,7 +211,7 @@ export const MemberList: React.FC = () => {
               setSelectedMemberId(null);
               setActiveView('wizard');
             }}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-white bg-amber-600 hover:bg-amber-700 rounded-lg shadow-xs transition-colors"
+            className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-white bg-amber-600 hover:bg-amber-700 rounded-lg shadow-xs transition-colors cursor-pointer"
           >
             <UserPlus className="w-3.5 h-3.5" />
             <span>Novo Cadastro</span>
@@ -272,13 +277,13 @@ export const MemberList: React.FC = () => {
         </div>
 
         {/* Secondary filters row & active counters */}
-        <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-100 text-xs">
-          <div className="flex items-center gap-3">
-            <span className="text-slate-500 font-medium">Filtro Rápido:</span>
-            <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-lg">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-slate-100 text-xs">
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
+            <span className="text-slate-500 font-medium shrink-0">Filtro Rápido:</span>
+            <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-lg shrink-0">
               <button
                 onClick={() => setBaptismFilter('all')}
-                className={`px-2.5 py-1 text-xs rounded-md font-medium transition-colors ${
+                className={`px-2.5 py-1 text-xs rounded-md font-medium transition-colors cursor-pointer ${
                   baptismFilter === 'all' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
@@ -286,7 +291,7 @@ export const MemberList: React.FC = () => {
               </button>
               <button
                 onClick={() => setBaptismFilter('baptized')}
-                className={`px-2.5 py-1 text-xs rounded-md font-medium transition-colors ${
+                className={`px-2.5 py-1 text-xs rounded-md font-medium transition-colors cursor-pointer ${
                   baptismFilter === 'baptized' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
@@ -294,7 +299,7 @@ export const MemberList: React.FC = () => {
               </button>
               <button
                 onClick={() => setBaptismFilter('not_baptized')}
-                className={`px-2.5 py-1 text-xs rounded-md font-medium transition-colors ${
+                className={`px-2.5 py-1 text-xs rounded-md font-medium transition-colors cursor-pointer ${
                   baptismFilter === 'not_baptized' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
@@ -303,17 +308,17 @@ export const MemberList: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex items-center gap-3 text-slate-500 font-medium">
-            <span>
+          <div className="flex items-center justify-between sm:justify-end gap-3 text-slate-500 font-medium">
+            <span className="truncate">
               Exibindo <strong className="text-slate-900 font-mono">{filteredMembers.length}</strong> de{' '}
-              <span className="font-mono">{members.length}</span> registros
+              <span className="font-mono">{members.length}</span>
             </span>
 
             {/* Toggle Table/Cards */}
-            <div className="flex items-center gap-1 border border-slate-200 rounded-lg p-0.5 bg-slate-50">
+            <div className="flex items-center gap-1 border border-slate-200 rounded-lg p-0.5 bg-slate-50 shrink-0">
               <button
                 onClick={() => setViewMode('table')}
-                className={`px-2 py-0.5 text-xs rounded ${
+                className={`px-2.5 py-1 text-xs rounded cursor-pointer ${
                   viewMode === 'table' ? 'bg-white font-semibold text-slate-900 shadow-xs' : 'text-slate-500'
                 }`}
               >
@@ -321,7 +326,7 @@ export const MemberList: React.FC = () => {
               </button>
               <button
                 onClick={() => setViewMode('cards')}
-                className={`px-2 py-0.5 text-xs rounded ${
+                className={`px-2.5 py-1 text-xs rounded cursor-pointer ${
                   viewMode === 'cards' ? 'bg-white font-semibold text-slate-900 shadow-xs' : 'text-slate-500'
                 }`}
               >

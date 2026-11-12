@@ -59,46 +59,44 @@ export const Header: React.FC = () => {
 
   return (
     <>
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-30 px-4 lg:px-6 h-16 flex items-center justify-between gap-4">
+      <header className="bg-white border-b border-slate-200 sticky top-0 z-30 px-3 sm:px-4 lg:px-6 h-16 flex items-center justify-between gap-2 sm:gap-4">
         {/* Zone 1: Brand Title with Logo */}
-        <div className="flex items-center gap-3 shrink-0">
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           <img
             src="/assets/aistudio/Logo_igreja_30f200bb.jpg"
             alt="Logotipo Ministério Palavra e Unção"
-            className="w-10 h-10 rounded-lg object-cover border border-amber-300 shadow-xs shrink-0"
+            className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg object-cover border border-amber-300 shadow-xs shrink-0"
           />
-          <div>
-            <span className="text-base sm:text-lg font-bold text-slate-900 tracking-tight whitespace-nowrap">
+          <div className="min-w-0">
+            <span className="text-xs sm:text-base lg:text-lg font-bold text-slate-900 tracking-tight truncate block">
               Ministério Palavra e Unção
             </span>
-            <span className="hidden sm:inline-block text-xs font-medium text-amber-700 ml-1.5 pl-1.5 border-l border-slate-300 whitespace-nowrap">
+            <span className="hidden lg:inline-block text-xs font-medium text-amber-700 whitespace-nowrap">
               Transformando Vidas
             </span>
           </div>
         </div>
 
-
-
         {/* Zone 2: Operador - Usuário Autenticado com Menu de Perfil */}
-        <div className="relative flex items-center">
+        <div className="relative flex items-center shrink-0">
           <button
             onClick={() => setShowAdminMenu(!showAdminMenu)}
-            className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold bg-amber-50 hover:bg-amber-100/80 border border-amber-200/90 rounded-lg text-amber-900 shadow-2xs transition-colors cursor-pointer group"
+            className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 text-xs font-semibold bg-amber-50 hover:bg-amber-100/80 border border-amber-200/90 rounded-lg text-amber-900 shadow-2xs transition-colors cursor-pointer group"
             title="Gerenciar conta, senha ou desconectar"
           >
             <Shield className="w-3.5 h-3.5 text-amber-600 shrink-0" />
-            <span className="truncate max-w-[120px] sm:max-w-none">
+            <span className="truncate max-w-[80px] xs:max-w-[120px] sm:max-w-none">
               {currentUser?.name || 'Admin Geral'}
             </span>
             <span className="hidden md:inline-block text-[10px] font-normal text-amber-700/80 ml-0.5 pl-1.5 border-l border-amber-200 font-mono">
               @{currentUser?.username || adminUser.username}
             </span>
-            <ChevronDown className="w-3 h-3 text-amber-600 group-hover:translate-y-0.5 transition-transform" />
+            <ChevronDown className="w-3 h-3 text-amber-600 group-hover:translate-y-0.5 transition-transform shrink-0" />
           </button>
 
           {/* User Popover Menu */}
           {showAdminMenu && (
-            <div className="absolute top-full left-0 mt-2 w-72 bg-white rounded-xl shadow-xl border border-slate-200 z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
+            <div className="fixed inset-x-3 sm:absolute sm:inset-x-auto sm:left-0 top-16 sm:top-full mt-2 w-auto sm:w-72 bg-white rounded-xl shadow-2xl border border-slate-200 z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
               <div className="p-3 bg-gradient-to-r from-slate-900 to-amber-950 text-white">
                 <div className="text-[10px] font-mono text-amber-300 font-semibold uppercase tracking-wider">
                   {currentUser?.role === 'ADMIN_GERAL' ? 'Administrador Geral' : 'Usuário Autenticado'}
@@ -147,15 +145,15 @@ export const Header: React.FC = () => {
         </div>
 
         {/* Zone 3: Actions & Notifications */}
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
           {/* Quick Search Button */}
           <button
             onClick={() => setShowSearchModal(true)}
-            className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-slate-600 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg transition-colors whitespace-nowrap"
+            className="flex items-center gap-1.5 px-2 sm:px-3 py-1.5 text-xs font-medium text-slate-600 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg transition-colors whitespace-nowrap cursor-pointer"
             title="Buscar membro por nome, CPF ou matrícula"
           >
             <Search className="w-3.5 h-3.5 text-slate-500" />
-            <span className="hidden md:inline">Pesquisar...</span>
+            <span className="hidden sm:inline">Pesquisar...</span>
             <kbd className="hidden md:inline-block px-1.5 py-0.5 text-[10px] font-mono bg-white border border-slate-200 rounded text-slate-400">
               /
             </kbd>
@@ -165,7 +163,7 @@ export const Header: React.FC = () => {
           <div className="relative">
             <button
               onClick={() => setShowAlertsPopover(!showAlertsPopover)}
-              className="relative p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors"
+              className="relative p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
               title="Notificações e Alertas Administrativos"
             >
               <Bell className="w-4 h-4" />
@@ -176,7 +174,7 @@ export const Header: React.FC = () => {
 
             {/* Alerts Dropdown */}
             {showAlertsPopover && (
-              <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-xl shadow-xl border border-slate-200 z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
+              <div className="fixed inset-x-3 sm:absolute sm:inset-x-auto sm:right-0 top-16 sm:top-full mt-2 w-auto sm:w-96 bg-white rounded-xl shadow-2xl border border-slate-200 z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
                 <div className="px-4 py-3 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-semibold text-slate-900">
